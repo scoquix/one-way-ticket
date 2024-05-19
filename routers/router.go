@@ -12,12 +12,13 @@ func SetupRouter() *gin.Engine {
 	r.POST("/login", auth.Login)
 
 	userRoutes := r.Group("/users")
+	userRoutes.Use(auth.AuthenticateMiddleware())
 	{
 		userRoutes.GET("/", users.GetUsers)
 		userRoutes.GET("/:id", users.GetUser)
 		userRoutes.POST("/", users.CreateUser)
 		userRoutes.PUT("/:id", users.UpdateUser)
-		userRoutes.DELETE("/:id", auth.AuthenticateMiddleware(), users.DeleteUser)
+		userRoutes.DELETE("/:id", users.DeleteUser)
 	}
 
 	return r
