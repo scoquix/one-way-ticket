@@ -12,7 +12,7 @@ import (
 
 func TestGetUsers(t *testing.T) {
 	router := gin.Default()
-	router.GET("/users", GetUsers)
+	router.GET("/users/", GetUsers)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/users/", nil)
@@ -23,7 +23,7 @@ func TestGetUsers(t *testing.T) {
 
 func TestCreateUser(t *testing.T) {
 	router := gin.Default()
-	router.POST("/users", CreateUser)
+	router.POST("/users/", CreateUser)
 
 	w := httptest.NewRecorder()
 	user := `{"username": "testuser", "password": "testpass"}`
