@@ -1,0 +1,16 @@
+# Use the official Golang image as a base
+FROM golang:1.22.3
+# Set the Current Working Directory inside the container
+WORKDIR /app
+
+# Copy go.mod and go.sum files first for dependency caching
+COPY go.mod go.sum ./
+
+# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
+RUN go mod download
+
+# Copy the source code into the container
+COPY . .
+
+# Run the tests
+CMD ["go", "test", "-v", "-tags", "\"integration_test\"", "./..."]
