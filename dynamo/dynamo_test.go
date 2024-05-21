@@ -51,7 +51,7 @@ func TestCreateTable(t *testing.T) {
 		KeySchema: []types.KeySchemaElement{
 			{
 				AttributeName: aws.String("ID"),
-				KeyType:       types.KeyTypeHash, // Partition key
+				KeyType:       types.KeyTypeHash,
 			},
 		},
 		ProvisionedThroughput: &types.ProvisionedThroughput{
