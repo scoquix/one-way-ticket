@@ -26,7 +26,6 @@ func TestCreateTable(t *testing.T) {
 					if service == dynamodb.ServiceID && region == "us-east-1" {
 						return aws.Endpoint{
 							URL: "http://host.docker.internal:4566",
-							//URL: "http://localhost:4566",
 						}, nil
 					}
 					return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")
