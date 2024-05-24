@@ -8,6 +8,9 @@ REST API for authorization and reserving tickets for events.
 - LocalStack v3.4.0
 - Docker 
 
+## Prerequisites
+- [Install localstack](https://docs.localstack.cloud/getting-started/installation/)
+
 ## Run using Docker
 1. Go to project directory
 ```shell
@@ -21,3 +24,9 @@ docker build -t myapp .
 ```shell
 docker run -p 8080:8080 myapp
 ```
+
+## Run integration tests
+```shell
+docker-compose up --build --abort-on-container-exit --exit-code-from go-tests
+```
+
