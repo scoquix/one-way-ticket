@@ -3,7 +3,9 @@ package auth
 import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+	"reflect"
 	"time"
 )
 
@@ -22,11 +24,16 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// TODO - check if user exists in users database
+
+	// set TTL for session
+	ttl := time.Now().Add(10 * time.Minute).Unix()
+
 	// set claims
 	claims := &Claims{
 		Username: username,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute * 15).Unix(),
+			ExpiresAt: ttl,
 		},
 	}
 
@@ -37,6 +44,14 @@ func Login(c *gin.Context) {
 	t, err := token.SignedString([]byte("secret"))
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+	log.Println(t, reflect.TypeOf(t))
+	err = CreateSession(t, ttl)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create session"})
+		log.Println(err)
 		return
 	}
 

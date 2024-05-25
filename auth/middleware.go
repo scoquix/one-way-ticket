@@ -29,6 +29,11 @@ func AuthenticateMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		_, err = GetSessionForUser(tokenString)
+		if err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
 		c.Next()
 	}
 }
