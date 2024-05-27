@@ -1,5 +1,5 @@
 # Use the official Golang image as a base
-FROM golang:1.22.3 as build
+FROM golang:1.22.3 AS build
 # Set the Current Working Directory inside the container
 WORKDIR /app
 # Fix for poblem with lib GLIBC_2.34 not found
