@@ -3,36 +3,16 @@ package auth
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"one-way-ticket/models"
-	"os"
 )
 
-var (
-	tableName = "sessions"
-	svc       *dynamodb.DynamoDB
-)
-
-func init() {
-	// Initialize a session that the SDK uses to load configuration,
-	// credentials, and region from the environment
-	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-	awsSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-	awsRegion := "us-east-1"
-	token := ""
-
-	sess := session.Must(session.NewSession(&aws.Config{
-		Region:      aws.String(awsRegion),
-		Credentials: credentials.NewStaticCredentials(awsAccessKey, awsSecretKey, token),
-	}))
-	svc = dynamodb.New(sess)
-}
+var tableName = "sessions"
 
 // CreateSession creates a new session
-func CreateSession(token string, ttl int64) error {
+func CreateSession(svc dynamodbiface.DynamoDBAPI, token string, ttl int64) error {
 	sess := models.Session{
 		Token: token,
 		TTL:   ttl,
@@ -56,7 +36,7 @@ func CreateSession(token string, ttl int64) error {
 }
 
 // GetSessionForUser retrieves a session by sessionID
-func GetSessionForUser(userID string) (*models.Session, error) {
+func GetSessionForUser(svc dynamodbiface.DynamoDBAPI, userID string) (*models.Session, error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(tableName),
 		Key: map[string]*dynamodb.AttributeValue{
