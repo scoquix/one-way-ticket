@@ -15,7 +15,9 @@ import (
 )
 
 func TestT(t *testing.T) {
-	db, err := sqlx.Connect("postgres", "user=test dbname=test sslmode=disable password=test host=localhost")
+	dsn := fmt.Sprintf("user=%v password=%v dbname=%v sslmode=disable host=postgres",
+		os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB"))
+	db, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		fmt.Printf("Unable to connect to database: %v\n", err)
 		os.Exit(1)

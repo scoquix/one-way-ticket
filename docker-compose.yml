@@ -32,9 +32,14 @@ services:
       dockerfile: Dockerfile-test
     depends_on:
       - localstack
+      - postgres
     ports:
       - "8080:8080"
     environment:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_DEFAULT_REGION=us-east-1
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_DB=onewayticket
+
