@@ -17,6 +17,16 @@ services:
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
 
+  postgres:
+    container_name: postgres-db
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: onewayticket
+    ports:
+      - "5432:5432"
+
   go-tests:
     build:
       dockerfile: Dockerfile-test
