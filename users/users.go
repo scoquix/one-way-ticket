@@ -11,6 +11,10 @@ import (
 
 var log = logrus.New()
 
+const (
+	InvalidUserId = "Invalid user ID"
+)
+
 func GetUsers(c *gin.Context) {
 	var users []models.User
 	err := db.Dbx.Select(&users, "SELECT * FROM users")
@@ -24,7 +28,7 @@ func GetUsers(c *gin.Context) {
 func GetUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": InvalidUserId})
 		return
 	}
 
@@ -75,7 +79,7 @@ func CreateUser(c *gin.Context) {
 func UpdateUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": InvalidUserId})
 		return
 	}
 
@@ -103,7 +107,7 @@ func UpdateUser(c *gin.Context) {
 func DeleteUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": InvalidUserId})
 		return
 	}
 
