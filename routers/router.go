@@ -3,8 +3,10 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 	"one-way-ticket/auth"
-	"one-way-ticket/movies"
-	"one-way-ticket/users"
+	"one-way-ticket/service/bookings"
+	"one-way-ticket/service/movies"
+	"one-way-ticket/service/showtimes"
+	"one-way-ticket/service/users"
 )
 
 func SetupRouter() *gin.Engine {
@@ -30,6 +32,26 @@ func SetupRouter() *gin.Engine {
 		moviesRoutes.POST("/", movies.CreateMovie)
 		moviesRoutes.PUT("/:id", movies.UpdateMovie)
 		moviesRoutes.DELETE("/:id", movies.DeleteMovie)
+	}
+
+	showTimesRoutes := r.Group("/showtimes")
+	showTimesRoutes.Use(auth.AuthenticateMiddleware())
+	{
+		showTimesRoutes.GET("/", showtimes.GetShowtimes)
+		showTimesRoutes.GET("/:id", showtimes.GetShowtime)
+		showTimesRoutes.POST("/", showtimes.CreateShowtime)
+		showTimesRoutes.PUT("/:id", showtimes.UpdateShowtime)
+		showTimesRoutes.DELETE("/:id", showtimes.DeleteShowtime)
+	}
+
+	bookingsRoutes := r.Group("/bookings")
+	bookingsRoutes.Use(auth.AuthenticateMiddleware())
+	{
+		bookingsRoutes.GET("/", bookings.GetBookings)
+		bookingsRoutes.GET("/:id", bookings.GetBooking)
+		bookingsRoutes.POST("/", bookings.CreateBooking)
+		bookingsRoutes.PUT("/:id", bookings.UpdateBooking)
+		bookingsRoutes.DELETE("/:id", bookings.DeleteBooking)
 	}
 
 	return r
