@@ -24,7 +24,8 @@ CREATE TABLE Bookings (
                           booking_id SERIAL PRIMARY KEY,
                           user_id INT NOT NULL,
                           showtime_id INT NOT NULL,
-                          seats INT NOT NULL,
+                          seat_number INT NOT NULL CHECK (seat_number > 0 AND seat_number <= 100),
                           FOREIGN KEY (user_id) REFERENCES Users(user_id),
-                          FOREIGN KEY (showtime_id) REFERENCES Showtimes(showtime_id)
+                          FOREIGN KEY (showtime_id) REFERENCES Showtimes(showtime_id),
+                          UNIQUE (showtime_id, seat_number)
 );
