@@ -1,11 +1,15 @@
 package auth
 
 import (
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
+	"one-way-ticket/dynamo"
+	"one-way-ticket/mocks"
 	"testing"
 	"time"
 )
@@ -19,8 +23,16 @@ func generateTestToken(secret string, expirationTime time.Duration) (string, err
 }
 
 func TestAuthenticateMiddleware(t *testing.T) {
+	// Create a new Handler with the mock client
+	mockSvc := new(mocks.MockDynamoDBClient)
+	mockSvc.On("GetItem", mock.MatchedBy(func(input *dynamodb.GetItemInput) bool {
+		return input.TableName != nil && *input.TableName == dynamo.TableName &&
+			input.Key["token"].S != nil && len(*input.Key["token"].S) > 0
+	})).Return(&dynamodb.GetItemOutput{}, nil)
+
+	handler := NewHandler(mockSvc)
 	router := gin.Default()
-	router.Use(AuthenticateMiddleware())
+	router.Use(handler.AuthenticateMiddleware())
 	router.GET("/users", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "success"})
 	})

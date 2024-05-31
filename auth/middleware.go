@@ -5,9 +5,10 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"one-way-ticket/dynamo"
 )
 
-func AuthenticateMiddleware() gin.HandlerFunc {
+func (h *Handler) AuthenticateMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")
 
@@ -26,6 +27,12 @@ func AuthenticateMiddleware() gin.HandlerFunc {
 		//verify the token
 		if _, ok := token.Claims.(jwt.MapClaims); !ok || !token.Valid {
 			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		_, err = dynamo.GetSessionForUser(h.ddb, tokenString)
+		if err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 
