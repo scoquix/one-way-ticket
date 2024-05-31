@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"one-way-ticket/models"
 	"strings"
 	"testing"
 	"time"
@@ -46,7 +47,7 @@ func TestLoginAdminUser(t *testing.T) {
 	token := response["token"]
 	assert.NotEmpty(t, token)
 
-	claims := &Claims{}
+	claims := &models.Claims{}
 	parsedToken, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte("secret"), nil
 	})
