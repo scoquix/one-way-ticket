@@ -1,81 +1,103 @@
-//go:build integration_test
-// +build integration_test
-
 package dynamo
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"testing"
-	"time"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"errors"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/stretchr/testify/assert"
+	"one-way-ticket/mocks"
+	"one-way-ticket/models"
+	"testing"
 )
 
-func TestCreateTable(t *testing.T) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion("us-east-1"),
-		config.WithEndpointResolver(
-			aws.EndpointResolverFunc(
-				func(service, region string) (aws.Endpoint, error) {
-					if service == dynamodb.ServiceID && region == "us-east-1" {
-						return aws.Endpoint{
-							URL: "http://host.docker.internal:4566",
-						}, nil
-					}
-					return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")
-				},
-			),
-		),
-	)
-	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
+// Test CreateSession
+func TestCreateSession(t *testing.T) {
+	mockSvc := new(mocks.MockDynamoDBClient)
+	mockSession := models.Session{
+		Token: "test-token",
+		TTL:   123456,
 	}
 
-	svc := dynamodb.NewFromConfig(cfg)
+	av, err := dynamodbattribute.MarshalMap(mockSession)
+	assert.NoError(t, err)
 
-	tableName := "ExampleTable"
-	input := &dynamodb.CreateTableInput{
+	mockSvc.On("PutItem", &dynamodb.PutItemInput{
 		TableName: aws.String(tableName),
-		AttributeDefinitions: []types.AttributeDefinition{
-			{
-				AttributeName: aws.String("ID"),
-				AttributeType: types.ScalarAttributeTypeS,
-			},
-		},
-		KeySchema: []types.KeySchemaElement{
-			{
-				AttributeName: aws.String("ID"),
-				KeyType:       types.KeyTypeHash,
-			},
-		},
-		ProvisionedThroughput: &types.ProvisionedThroughput{
-			ReadCapacityUnits:  aws.Int64(5),
-			WriteCapacityUnits: aws.Int64(5),
-		},
+		Item:      av,
+	}).Return(&dynamodb.PutItemOutput{}, nil)
+
+	err = CreateSession(mockSvc, "test-token", 123456)
+	assert.NoError(t, err)
+
+	mockSvc.AssertExpectations(t)
+}
+
+// Test GetSessionForUser
+func TestGetSessionForUser(t *testing.T) {
+	mockSvc := new(mocks.MockDynamoDBClient)
+	mockSession := models.Session{
+		Token: "test-token",
+		TTL:   123456,
 	}
 
-	_, err = svc.CreateTable(context.TODO(), input)
-	assert.NoError(t, err, "failed to create table")
+	av, err := dynamodbattribute.MarshalMap(mockSession)
+	assert.NoError(t, err)
 
-	fmt.Println("Waiting for table to be created...")
-
-	waiter := dynamodb.NewTableExistsWaiter(svc)
-	err = waiter.Wait(context.TODO(), &dynamodb.DescribeTableInput{
+	mockSvc.On("GetItem", &dynamodb.GetItemInput{
 		TableName: aws.String(tableName),
-	}, 5*time.Minute)
-	assert.NoError(t, err, "failed to wait for table creation")
+		Key: map[string]*dynamodb.AttributeValue{
+			"token": {
+				S: aws.String("test-token"),
+			},
+		},
+	}).Return(&dynamodb.GetItemOutput{
+		Item: av,
+	}, nil)
 
-	fmt.Println("Table created successfully")
+	sess, err := GetSessionForUser(mockSvc, "test-token")
+	assert.NoError(t, err)
+	assert.Equal(t, &mockSession, sess)
 
-	// Clean up
-	_, err = svc.DeleteTable(context.TODO(), &dynamodb.DeleteTableInput{
+	mockSvc.AssertExpectations(t)
+}
+
+// Test GetSessionForUser when session not found
+func TestGetSessionForUser_NotFound(t *testing.T) {
+	mockSvc := new(mocks.MockDynamoDBClient)
+	mockSvc.On("GetItem", &dynamodb.GetItemInput{
 		TableName: aws.String(tableName),
-	})
-	assert.NoError(t, err, "failed to delete table")
+		Key: map[string]*dynamodb.AttributeValue{
+			"token": {
+				S: aws.String("nonexistent-token"),
+			},
+		},
+	}).Return(&dynamodb.GetItemOutput{
+		Item: nil,
+	}, nil)
+
+	sess, err := GetSessionForUser(mockSvc, "nonexistent-token")
+	assert.NoError(t, err)
+	assert.Nil(t, sess)
+
+	mockSvc.AssertExpectations(t)
+}
+
+// Test GetSessionForUser with error
+func TestGetSessionForUser_Error(t *testing.T) {
+	mockSvc := new(mocks.MockDynamoDBClient)
+	mockSvc.On("GetItem", &dynamodb.GetItemInput{
+		TableName: aws.String(tableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"token": {
+				S: aws.String("error-token"),
+			},
+		},
+	}).Return(&dynamodb.GetItemOutput{}, errors.New("dynamodb error"))
+
+	sess, err := GetSessionForUser(mockSvc, "error-token")
+	assert.Error(t, err)
+	assert.Nil(t, sess)
+
+	mockSvc.AssertExpectations(t)
 }

@@ -4,13 +4,9 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"one-way-ticket/models"
 	"time"
 )
-
-type Claims struct {
-	Username string `json:"username"`
-	jwt.StandardClaims
-}
 
 func Login(c *gin.Context) {
 	username := c.PostForm("username")
@@ -23,7 +19,7 @@ func Login(c *gin.Context) {
 	}
 
 	// set claims
-	claims := &Claims{
+	claims := &models.Claims{
 		Username: username,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Minute * 15).Unix(),
