@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-var tableName = "sessions"
+var TableName = "sessions"
 
 // NewDynamoClient initialize AWS session that the SDK uses for communication
 func NewDynamoClient() dynamodbiface.DynamoDBAPI {
@@ -44,7 +44,7 @@ func CreateSession(svc dynamodbiface.DynamoDBAPI, token string, ttl int64) error
 	}
 
 	input := &dynamodb.PutItemInput{
-		TableName: aws.String(tableName),
+		TableName: aws.String(TableName),
 		Item:      av,
 	}
 
@@ -58,7 +58,7 @@ func CreateSession(svc dynamodbiface.DynamoDBAPI, token string, ttl int64) error
 // GetSessionForUser retrieves a session by sessionID
 func GetSessionForUser(svc dynamodbiface.DynamoDBAPI, userID string) (*models.Session, error) {
 	input := &dynamodb.GetItemInput{
-		TableName: aws.String(tableName),
+		TableName: aws.String(TableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"token": {
 				S: aws.String(userID),

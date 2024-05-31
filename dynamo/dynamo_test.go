@@ -23,7 +23,7 @@ func TestCreateSession(t *testing.T) {
 	assert.NoError(t, err)
 
 	mockSvc.On("PutItem", &dynamodb.PutItemInput{
-		TableName: aws.String(tableName),
+		TableName: aws.String(TableName),
 		Item:      av,
 	}).Return(&dynamodb.PutItemOutput{}, nil)
 
@@ -45,7 +45,7 @@ func TestGetSessionForUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	mockSvc.On("GetItem", &dynamodb.GetItemInput{
-		TableName: aws.String(tableName),
+		TableName: aws.String(TableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"token": {
 				S: aws.String("test-token"),
@@ -66,7 +66,7 @@ func TestGetSessionForUser(t *testing.T) {
 func TestGetSessionForUser_NotFound(t *testing.T) {
 	mockSvc := new(mocks.MockDynamoDBClient)
 	mockSvc.On("GetItem", &dynamodb.GetItemInput{
-		TableName: aws.String(tableName),
+		TableName: aws.String(TableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"token": {
 				S: aws.String("nonexistent-token"),
@@ -87,7 +87,7 @@ func TestGetSessionForUser_NotFound(t *testing.T) {
 func TestGetSessionForUser_Error(t *testing.T) {
 	mockSvc := new(mocks.MockDynamoDBClient)
 	mockSvc.On("GetItem", &dynamodb.GetItemInput{
-		TableName: aws.String(tableName),
+		TableName: aws.String(TableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"token": {
 				S: aws.String("error-token"),
