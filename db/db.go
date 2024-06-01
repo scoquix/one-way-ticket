@@ -17,10 +17,11 @@ func Connect() error {
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
 	dbPort := os.Getenv("DB_PORT")
+	dbHost := os.Getenv("DB_HOST")
+	dbSsl := os.Getenv("DB_SSL")
 
-	dsn := fmt.Sprintf(
-		"user=%s password=%s dbname=%s host=host.docker.internal port=%s sslmode=disable",
-		dbUser, dbPassword, dbName, dbPort,
+	dsn := fmt.Sprintf("host=%s dbname=%s  port=%s user=%s password=%s sslmode=%s",
+		dbHost, dbName, dbPort, dbUser, dbPassword, dbSsl,
 	)
 
 	db, err := sqlx.Connect(driverName, dsn)
