@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"one-way-ticket/db"
 	"one-way-ticket/dynamo"
 	"one-way-ticket/models"
 	"time"
@@ -26,9 +27,14 @@ func (h *Handler) Login(c *gin.Context) {
 	password := c.PostForm("password")
 
 	// perform authentication here
-	if username != "admin" && password != "password" {
-		c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
-		return
+	if !(username == "admin" && password == "password") {
+		var user models.User
+		err := db.Dbx.Get(&user, "SELECT * FROM users WHERE username=$1", username)
+		if err != nil {
+			log.Println(err.Error())
+			c.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
+			return
+		}
 	}
 
 	// set TTL for session
