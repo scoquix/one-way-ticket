@@ -3,6 +3,7 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 	"one-way-ticket/auth"
+	"one-way-ticket/dynamo"
 	"one-way-ticket/service/bookings"
 	"one-way-ticket/service/movies"
 	"one-way-ticket/service/showtimes"
@@ -12,10 +13,11 @@ import (
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
-	r.POST("/login", auth.Login)
+	handler := auth.NewHandler(dynamo.NewDynamoClient())
+	r.POST("/login", handler.Login)
 
 	userRoutes := r.Group("/users")
-	userRoutes.Use(auth.AuthenticateMiddleware())
+	userRoutes.Use(handler.AuthenticateMiddleware())
 	{
 		userRoutes.GET("/", users.GetUsers)
 		userRoutes.GET("/:id", users.GetUser)
@@ -25,7 +27,7 @@ func SetupRouter() *gin.Engine {
 	}
 
 	moviesRoutes := r.Group("/movies")
-	moviesRoutes.Use(auth.AuthenticateMiddleware())
+	moviesRoutes.Use(handler.AuthenticateMiddleware())
 	{
 		moviesRoutes.GET("/", movies.GetMovies)
 		moviesRoutes.GET("/:id", movies.GetMovie)
@@ -35,7 +37,7 @@ func SetupRouter() *gin.Engine {
 	}
 
 	showTimesRoutes := r.Group("/showtimes")
-	showTimesRoutes.Use(auth.AuthenticateMiddleware())
+	showTimesRoutes.Use(handler.AuthenticateMiddleware())
 	{
 		showTimesRoutes.GET("/", showtimes.GetShowtimes)
 		showTimesRoutes.GET("/:id", showtimes.GetShowtime)
@@ -45,7 +47,7 @@ func SetupRouter() *gin.Engine {
 	}
 
 	bookingsRoutes := r.Group("/bookings")
-	bookingsRoutes.Use(auth.AuthenticateMiddleware())
+	bookingsRoutes.Use(handler.AuthenticateMiddleware())
 	{
 		bookingsRoutes.GET("/", bookings.GetBookings)
 		bookingsRoutes.GET("/:id", bookings.GetBooking)

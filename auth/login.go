@@ -1,18 +1,27 @@
 package auth
 
 import (
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+	"one-way-ticket/dynamo"
+	"one-way-ticket/models"
 	"time"
 )
 
-type Claims struct {
-	Username string `json:"username"`
-	jwt.StandardClaims
+// Handler struct to handle login requests and interact with DynamoDB
+type Handler struct {
+	ddb dynamodbiface.DynamoDBAPI
 }
 
-func Login(c *gin.Context) {
+// NewHandler creates a new Handler with the provided DynamoDB client
+func NewHandler(ddb dynamodbiface.DynamoDBAPI) *Handler {
+	return &Handler{ddb: ddb}
+}
+
+func (h *Handler) Login(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
@@ -22,11 +31,14 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// set TTL for session
+	ttl := time.Now().Add(15 * time.Minute).Unix()
+
 	// set claims
-	claims := &Claims{
+	claims := &models.Claims{
 		Username: username,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute * 15).Unix(),
+			ExpiresAt: ttl,
 		},
 	}
 
@@ -37,6 +49,13 @@ func Login(c *gin.Context) {
 	t, err := token.SignedString([]byte("secret"))
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	err = dynamo.CreateSession(h.ddb, t, ttl)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create session"})
+		log.Println(err)
 		return
 	}
 
