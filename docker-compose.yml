@@ -24,6 +24,7 @@ services:
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test
       POSTGRES_DB: onewayticket
+      POSTGRES_HOST: host.docker.internal
     ports:
       - "5432:5432"
     volumes:
@@ -44,3 +45,5 @@ services:
       - DB_PASSWORD=test
       - DB_NAME=onewayticket
       - DB_PORT=5432
+      - DB_HOST=host.docker.internal
+      - DB_SSL=disable
